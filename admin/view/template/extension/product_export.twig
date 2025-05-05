@@ -1,0 +1,501 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+       {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">{% if error_warning %}
+     <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+	<style>
+		.tab-content input {
+			background-color: #fafafa;
+			border-radius: 0;
+			height: 40px;	
+		}
+		.tab-content select{
+			background-color: #fafafa;
+			border-radius: 0;
+			height: 40px;	
+		}
+		.ajaxloader{
+			position:relative;
+		}
+		.ajaxloader .loader{
+			position:absolute;
+			width:100%;
+			height:100%;
+			background-color:rgba(255, 255, 255, 0.8);
+			z-index:999;
+			display:none;
+		}
+		.ajaxloader .loader img{
+			position:absolute;
+			left:0px;
+			right:0px;
+			top:0px;
+			bottom:0px;
+			margin:auto;
+		}
+	</style>
+    <div class="ajaxloader">
+		<div class="loader"><img src="view/image/product_import_export/pie_loader.gif" /></div>
+		<div class="panel panel-default">
+		  <div class="panel-heading">
+			<h3 class="panel-title"><i class="fa fa-pencil"></i> {{ heading_title }}</h3>
+		  </div>
+		  <div class="panel-body">
+			<ul class="nav nav-tabs">
+			  <li class="active"><a href="#tab-productdata" data-toggle="tab">{{ tab_producttab }}</a></li>
+			  <li><a href="#tab-reviewdata" data-toggle="tab">{{ tab_reviewdata }}</a></li>
+			</ul>
+			<div class="tab-content">
+				
+				<div class="tab-pane active in" id="tab-productdata">
+				<form  enctype="multipart/form-data" id="form-product">
+					
+				  <div class="row">
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label class="control-label" for="input-name">{{ entry_store }}</label>
+								<select class="form-control" name="filter_store">
+								 <option value="0">{{ text_default }}</option>
+									{% for store in stores %}
+									<option value="{{store.store_id}}">{{store.name}}</option>
+									 {% endfor %}
+								</select>
+							</div>
+							<div class="form-group" style="overflow:auto;">
+								<label class="col-sm-12 control-label" for="input-category"><span data-toggle="tooltip" title="autocomplete">{{ entry_categories }}</span></label>
+								<div class="col-sm-12">
+									<input type="text" name="category" value="" placeholder="{{ entry_categories }}" id="input-category" class="form-control" />
+									<div id="product-category" class="well well-sm" style="height: 150px; overflow: auto;"></div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label style="width:100%;" class="control-label" for="input-quantity">{{entry_quantityrange}}</label>
+								 <input style="display:inline-block; width:47%;"; type="text" name="filter_quantity_to" value="{{filter_price}}" placeholder="To" id="input-price" class="form-control" /> - <input style="display:inline-block; width:47%;"; type="text" name="filter_quantity_form" value="{{filter_quantity}}" placeholder="From" id="input-quantity" class="form-control"/>
+							</div>
+							<div class="form-group">
+								<label class="control-label" for="input-quantity"><?php echo $entry_stock_status; ?></label>
+								<select name="filter_stock_status" id="input-status" class="form-control">
+									<option value="">{{select_stock_status}}</option>
+										{% for stock in stock_statuses %}
+										<option value="{{stock.stock_status_id}}">{{stock.name}}</option>
+										{% endfor %}
+								</select>
+							</div>
+							<div class="form-group">
+								<label class="control-label" for="input-status">{{export_format}}</label>
+								<select name="filter_eformat" id="input-status" class="form-control selectpicker">
+									<option value="xls">XLS</option>
+									<option value="csv">CSV</option>
+									<option value="xlsx">XLSX</option>
+									<option value="xml">XML</option>
+								</select>
+							</div>
+					 </div>
+					<div class="col-sm-4">
+						<div class="form-group">
+							<label class="control-label" for="input-language">{{entry_language}}</label>
+							<select class="form-control" name="filter_language_id">
+							 <?php foreach($languages as $language){ ?>
+								 {% for language in languages %}
+								<option value="{{language.language_id}}">{{language.name}}</option>
+								{% endfor %}
+							</select>
+						</div>
+						<div class="form-group" style="overflow: auto;">
+							<label class="col-sm-12 control-label" for="input-related"><span data-toggle="tooltip" title="autocomplete">{{entry_name}}</span></label>
+							<div class="col-sm-12">
+								<input type="text" name="product" value="" placeholder="{{entry_name}}" id="input-related" class="form-control" />
+								<div id="product-related" class="well well-sm" style="height: 150px; overflow: auto;"></div>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="input-status">{{entry_status}}</label>
+							<select name="filter_status" id="input-status" class="form-control selectpicker">
+							  <option value="*">{{select_status}}</option>
+							  <option value="1" selected="selected">{{text_enabled}}</option>
+							  <option value="0">{{text_disabled}}</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label style="width:100%;" class="control-label" for="input-limit">Export in batches <br/> </label>
+							<input type="text" name="filter_limit" value="" placeholder="export data in 2 or more files" id="input-limit" class="form-control" />
+							<i>(Note: If you have large data then use this feature and export data in batches.<br/> i.e you have 10000+ products and You can't download in one file due to server issue. then you will use this feature and export data in batches =)</i>
+						</div>
+						{%if customfeilds %}
+						<div id="custom_feilds" class="form-group" style="overflow:auto;">
+							<div class="col-sm-12">
+								<label class="control-label" for="input-model">Extra Custom Feilds</label>
+								<div class="well well-sm" style="height: 150px; overflow: auto; font-size:16px;">
+									
+									
+									 {% for key, customfeild in customfeilds %}
+									<div class="checkbox">
+										<label>
+											<input checked="checked" type="checkbox" name="custom_feilds[{{customfeild}}][]" value="{{key}}" />
+											{{key}} 
+										</label>
+									</div>
+									{% endfor %}
+								</div>
+								<a onclick="$('#custom_feilds input[type=\'checkbox\']').prop('checked', true);">Selected</a>
+								||
+								<a onclick="$('#custom_feilds input[type=\'checkbox\']').prop('checked', false);">Clear</a>
+							</div>
+						</div>
+						{% endif %}
+						<div class="form-group">
+							<label class="control-label" for="input-status"></label>
+							<a style="width:100%; margin-top:23px;" class="btn btn-success pull-right exportproduct"><i class="fa fa-download"></i> {{button_export}}</a>
+						</div>
+					</div>
+					<div class="col-sm-4">
+						<div class="form-group">
+							<label class="control-label" for="input-pimage">{{product_image}}</label>
+							<select name="filter_pimage" id="input-pimage" class="form-control selectpicker">
+								<option value="no">No</option>
+								<option value="yes">Yes</option>
+							</select>
+						</div>
+						<div class="form-group" style="overflow: auto;">
+							<label class="col-sm-12 control-label" for="input-manufacturer"><span data-toggle="tooltip" title="autocomplete">{{entry_manufacturer}}</span></label>
+							<div class="col-sm-12">
+								<input type="text" name="manufacturer" value="" placeholder="{{entry_manufacturer}}" id="input-manufacturer" class="form-control" />
+								<div id="product-manufacturer" class="well well-sm" style="height: 150px; overflow: auto;"></div>
+							</div>
+			  </div>
+					  <div class="form-group">
+						<label style="width:100%;" class="control-label" for="input-product_id">{{entry_product_id}}</label>
+						<input style="display:inline-block; width:47%;" type="text" name="filter_product_id" value="{{miniproduct_id}}" placeholder="product ID" id="input-product_id" class="form-control" />
+						-
+						<input style="display:inline-block; width:47%;" type="text" name="filter_endproduct_id" value="{{maxproduct_id}}" placeholder="product ID" id="input-product_id" class="form-control" />
+					  </div>
+					  <div class="form-group">
+						<label style="width:100%;" class="control-label" for="input-price">{{entry_pricerange}}</label>
+						   <input style="display:inline-block; width:47%;" type="text" name="filter_price_to" value="{{filter_price}}" placeholder="To" id="input-price" class="form-control" /> - <input style="display:inline-block; width:47%;"; type="text" name="filter_price_form" value="{{filter_price}}" placeholder="From" id="input-price" class="form-control"/>
+					  </div>
+					  <div class="form-group">
+							<label class="control-label" for="input-model">{{entry_model}}</label>
+							<input type="text" name="filter_model" value="{{filter_model}}" placeholder="{{entry_model}}" id="input-model" class="form-control" />
+					  </div>
+					</div>
+					</div>
+				 </form>
+				</div>
+				<div class="tab-pane fade" id="tab-reviewdata">
+					<hr />
+					<div>
+					  <div class="row">
+						<div class="col-sm-6">
+						 <div class="form-group">
+							<label class="control-label" for="input-name">{{entry_name}}</label>
+							<input type="text" name="filter_name" value="{{filter_name}}" placeholder="{{entry_name}}" id="input-name" class="form-control" />
+						 </div>
+						  <div class="form-group">
+							<label class="control-label" for="input-status">{{entry_approved}}</label>
+							<select name="filter_status" id="input-status" class="form-control">
+							  <option value="*"></option>
+							  <option value="1" selected="selected">{{text_enabled}}</option>
+							  <option value="0">{{text_disabled}}</option>
+							</select>
+						  </div>
+						  <div class="form-group">
+							<label class="control-label" for="input-eformat">{{export_format}}</label>
+							<select name="filter_eformat" id="input-eformat" class="form-control">
+								<option value="xls">XLS</option>
+								<option value="csv">CSV</option>
+								<option value="xlsx">XLSX</option>
+								<option value="xml">XML</option>
+							</select>
+						  </div>
+						</div>
+						<div class="col-sm-6">
+						  <div class="form-group">
+							<label style="width:100%;" class="control-label" for="input-product_id">{{entry_product_id}} </label>
+							<input style="display:inline-block; width:47%;"; type="text" name="filter_product_id" value="{{miniproduct_id}}" placeholder="product ID" id="input-product_id" class="form-control" />
+							-
+							<input style="display:inline-block; width:47%;"; type="text" name="filter_endproduct_id" value="{{maxproduct_id}}" placeholder="product ID" id="input-product_id" class="form-control" />
+						  </div>
+						  <div class="form-group">
+							<label style="width:100%;" class="control-label" for="input-limit">Export in batches <br/> </label>
+							<input type="text" name="filter_limit" value="" placeholder="export data in 2 or more files" id="input-limit" class="form-control" />
+							<i>(Note: If you have large data then use this feature and export data in batches.<br/> i.e you have 10000+ product reviews and You can't download in one file due to server issue. then you will use this feature and export data in batches =)</i>
+						 </div>
+						  <div class="form-group">
+							<label> </label>
+							<button type="button" id="buttonproductreview" class="ourbtn btn btn-success form-control"><i class="fa fa-download"></i> Export </button>
+						  </div>
+						</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		  </div>
+		</div>
+    </div>
+ </div>
+</div>
+<script type="text/javascript"><!--
+$('.exportproduct').on('click',function(){
+	exportproduct('index.php?route=extension/product_export/export&user_token={{ user_token }}');
+});
+function exportproduct(url){
+	$.ajax({
+		url: url,
+		type: 'post',
+		data: $('#tab-productdata input[type=\'text\'], #tab-productdata input[type=\'hidden\'], #tab-productdata input[type=\'radio\']:checked, #tab-productdata input[type=\'checkbox\']:checked, #tab-productdata select, #tab-productdata textarea'),
+		dataType: 'json',
+		beforeSend: function() {
+			$('.ajaxloader .loader').show();
+			$('.exportproduct').button('loading');
+		},
+		complete: function() {
+			$('.exportproduct').button('reset');
+		},
+		success: function(json){
+			$('.alert, .text-danger').remove();
+			$('.form-group').removeClass('has-error');
+			
+			if(json['download']){
+				$('.ajaxloader .loader').hide();
+				window.location=json['download'];
+			}
+			
+			setTimeout(function(){
+				if(json['next']){
+				  exportproduct(json['next']);
+				}
+			}, 1000);
+		},
+        error: function(xhr, ajaxOptions, thrownError) {
+            alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+        }
+	});
+}
+
+$('#buttonproductreview').on('click',function(){
+	exportreview('index.php?route=extension/product_export/reviewexport&user_token={{user_token}}');
+});
+
+function exportreview(url){
+	$.ajax({
+		url: url,
+		type: 'post',
+		data: $('#tab-reviewdata input[type=\'text\'], #tab-reviewdata input[type=\'hidden\'], #tab-reviewdata input[type=\'radio\']:checked, #tab-reviewdata input[type=\'checkbox\']:checked, #tab-reviewdata select, #tab-reviewdata textarea'),
+		dataType: 'json',
+		beforeSend: function() {
+			$('.ajaxloader .loader').show();
+			$('.exportproduct').button('loading');
+		},
+		complete: function() {
+			$('.exportproduct').button('reset');
+		},
+		success: function(json){
+			$('.alert, .text-danger').remove();
+			$('.form-group').removeClass('has-error');
+			
+			if(json['download']){
+				$('.ajaxloader .loader').hide();
+				window.location=json['download'];
+			}
+			
+			if (json['next']) {
+				exportreview(json['next']);
+			}
+			
+			setTimeout(function(){
+				if(json['next']){
+				  exportreview(json['next']);
+				}
+			}, 1000);
+		},
+        error: function(xhr, ajaxOptions, thrownError) {
+            alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+        }
+	});
+}
+
+
+/* $('#buttonproductreview').on('click', function(){
+	url = 'index.php?route=tool/product_export/reviewexport&user_token={{ user_token }}';
+	
+	var filter_name = $('#tab-reviewdata input[name=\'filter_name\']').val();
+
+	if (filter_name) {
+		url += '&filter_name=' + encodeURIComponent(filter_name);
+	}
+	
+	var filter_start = $('#tab-reviewdata input[name=\'filter_start\']').val();
+	if(filter_start){
+		url += '&filter_start=' + encodeURIComponent(filter_start);
+	}
+	
+	var filter_limit = $('#tab-reviewdata input[name=\'filter_limit\']').val();
+	if(filter_limit){
+		url += '&filter_limit=' + encodeURIComponent(filter_limit);
+	}
+		
+	var filter_status = $('#tab-reviewdata select[name=\'filter_status\']').val();
+	if(filter_status != '*'){
+		url += '&filter_status=' + encodeURIComponent(filter_status); 
+	}
+	
+	var filter_product_id = $('#tab-reviewdata input[name=\'filter_product_id\']').val();
+
+	if(filter_product_id != ''){
+		url += '&filter_product_id=' + encodeURIComponent(filter_product_id);
+	}
+	
+	var filter_endproduct_id = $('#tab-reviewdata input[name=\'filter_endproduct_id\']').val();
+	if(filter_endproduct_id != ''){
+		url += '&filter_endproduct_id=' + encodeURIComponent(filter_endproduct_id);
+	}
+	
+	var filter_eformat = $('#tab-reviewdata select[name=\'filter_eformat\']').val();
+	if(filter_eformat){
+		url += '&filter_eformat=' + encodeURIComponent(filter_eformat);
+	}
+	location = url;
+}); */
+//--></script>
+<script type="text/javascript"><!--
+// Related
+$('input[name=\'product\']').autocomplete({
+	'source': function(request, response) {
+		$.ajax({
+			url: 'index.php?route=catalog/product/autocomplete&user_token={{ user_token }}&filter_name=' +  encodeURIComponent(request),
+			dataType: 'json',
+			success: function(json) {
+				response($.map(json, function(item) {
+					return {
+						label: item['name'],
+						value: item['product_id']
+					}
+				}));
+			}
+		});
+	},
+	'select': function(item) {
+		$('input[name=\'filter_name\']').val('');
+
+		$('#product-related' + item['value']).remove();
+
+		$('#product-related').append('<div id="product-related' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="product[]" value="' + item['value'] + '" /></div>');
+	}
+});
+
+$('#product-related').delegate('.fa-minus-circle', 'click', function() {
+	$(this).parent().remove();
+});
+
+
+// Category
+$('input[name=\'category\']').autocomplete({
+	'source': function(request, response) {
+		$.ajax({
+			url: 'index.php?route=catalog/category/autocomplete&user_token={{ user_token }}&filter_name=' +  encodeURIComponent(request),
+			dataType: 'json',
+			success: function(json) {
+				response($.map(json, function(item) {
+					return {
+						label: item['name'],
+						value: item['category_id']
+					}
+				}));
+			}
+		});
+	},
+	'select': function(item) {
+		$('input[name=\'category\']').val('');
+
+		$('#product-category' + item['value']).remove();
+
+		$('#product-category').append('<div id="product-category' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="product_category[]" value="' + item['value'] + '" /></div>');
+	}
+});
+
+$('#product-category').delegate('.fa-minus-circle', 'click', function() {
+	$(this).parent().remove();
+});
+
+//Manufacture
+$('input[name=\'manufacturer\']').autocomplete({
+	'source': function(request, response) {
+		$.ajax({
+			url: 'index.php?route=catalog/manufacturer/autocomplete&user_token={{ user_token }}&filter_name=' +  encodeURIComponent(request),
+			dataType: 'json',
+			success: function(json) {
+				response($.map(json, function(item) {
+					return {
+						label: item['name'],
+						value: item['manufacturer_id']
+					}
+				}));
+			}
+		});
+	},
+	'select': function(item) {
+		$('input[name=\'manufacturer\']').val('');
+
+		$('#product-manufacturer' + item['value']).remove();
+
+		$('#product-manufacturer').append('<div id="product-manufacturer' + item['value'] + '"><i class="fa fa-minus-circle"></i> ' + item['label'] + '<input type="hidden" name="manufacturers[]" value="' + item['value'] + '" /></div>');
+	}
+});
+
+$('#product-manufacturer').delegate('.fa-minus-circle', 'click', function(){
+	$(this).parent().remove();
+});
+
+$('input[name=\'filter_model\']').autocomplete({
+	'source': function(request, response){
+		$.ajax({
+			url: 'index.php?route=catalog/product/autocomplete&user_token={{ user_token }}&filter_model=' +  encodeURIComponent(request),
+			dataType: 'json',
+			success: function(json){
+				response($.map(json, function(item){
+					return{
+						label: item['model'],
+						value: item['product_id']
+					}
+				}));
+			}
+		});
+	},
+	'select': function(item){
+		$('input[name=\'filter_model\']').val(item['label']);
+	}
+});
+
+$('input[name=\'filter_name\']').autocomplete({
+	'source': function(request, response){
+		$.ajax({
+			url: 'index.php?route=catalog/product/autocomplete&user_token={{ user_token }}&filter_model=' +  encodeURIComponent(request),
+			dataType: 'json',
+			success: function(json){
+				response($.map(json, function(item){
+					return{
+						label: item['name'],
+						value: item['product_id']
+					}
+				}));
+			}
+		});
+	},
+	'select': function(item){
+		$('input[name=\'filter_name\']').val(item['label']);
+	}
+});
+//--></script>
+{{ footer }} 
